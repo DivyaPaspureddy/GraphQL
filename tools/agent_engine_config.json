@@ -1,0 +1,26 @@
+
+{
+  "display_name": "PESAgent",
+  "service_account": "sa-epagentplusgraphql@ebbwszjc-w9hi-90f5-lt2n-u91th3.iam.gserviceaccount.com",
+  "env_vars": {
+    "PES_OAUTH_URL": "https://api-stg.uhg.com/oauth2/token",
+    "PES_GRAPHQL_URL": "https://api-stg.uhg.com/api/provider/demographics/practitioner/1.0.0",
+    "PES_OAUTH_SCOPE": "provider/demographics/practitioner:read",
+    "PES_OAUTH_CLIENT_AUTH_METHOD": "post",
+    "PES_GRAPHQL_QUERY_GCS": "gs://ep-agent-plus-bucket/query.json",
+    "PES_DYNAMIC_SUMMARY": "1",
+    "LOG_LEVEL": "INFO",
+    "VERBOSE_GOOGLE_LOGS": "0",
+    "PES_UPSTREAM_ENV": "stage",
+    "PES_DEFAULT_APP_NAME": "PES",
+    "PES_CLIENT_ID_SECRET": "projects/ebbwszjc-w9hi-90f5-lt2n-u91th3/secrets/PES_CLIENT_ID/versions/latest",
+    "PES_CLIENT_SECRET_SECRET": "projects/ebbwszjc-w9hi-90f5-lt2n-u91th3/secrets/PES_CLIENT_SECRET/versions/latest",
+    "PES_NAME_SOURCE_SYSTEM": "ndb",
+    "PES_NAME_CODESET_TYPE": "firstName",
+    "PES_GRAPHQL_PARAMS_PLACEHOLDER": "__DYNAMIC_PARAMS__",
+    "GOOGLE_CLOUD_REGION": "us-central1",
+    "GOOGLE_GENAI_LOCATION": "us-central1",
+    "VERTEX_LOCATION": "us-central1",
+    "PES_AGENT_MODEL": "gemini-2.0-flash"
+  }
+}
