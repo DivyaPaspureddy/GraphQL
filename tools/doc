@@ -1,0 +1,1381 @@
+​​Contents 
+
+​ 
+
+​ 
+
+​ 
+
+​ 
+
+​ 
+
+​ 
+
+​ 
+
+​ 
+
+​ 
+
+​ 
+
+​ 
+
+​ 
+
+​ 
+
+​ 
+
+​ 
+
+​ 
+
+​ 
+
+​ 
+
+​ 
+
+​ 
+
+​ 
+
+​ 
+
+​ 
+
+​ 
+
+​ 
+
+​ 
+
+​ 
+
+​ 
+
+​ 
+
+​ 
+
+​ 
+
+​ 
+
+​ 
+
+​ 
+
+​ 
+
+​​ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+Enablement of Gemini Enterprise in blank GCP Project 
+
+You enable Gemini Enterprise in a blank GCP project mainly by: -  
+
+Turning on billing, Enabling the right Gemini/Vertex-related APIs, and Assigning the required IAM roles to users. 
+
+Prerequisites (Org / Workspace) 
+
+Ensure your Google Workspace or Cloud org has a Gemini Enterprise subscription and licenses assigned to users who should use Gemini Enterprise. 
+
+Make sure you can create projects and enable services (for you: roles like Project Creator and Service Usage Admin are sufficient) 
+
+Step 1: CREATE a blank GCP Project 
+
+Go to the Google Cloud console project selector and click New Project. 
+
+Enter project name, organization, and location; click Create. 
+
+Wait until the project is created and then select it in the top project selector. 
+
+Step 2: Enable billing on the Project 
+
+In the Cloud console, go to Billing and either link an existing billing account or create a new one. 
+
+Confirm that billing status for the project shows as active; Gemini Enterprise usage requires billing/quota tracking 
+
+Step 3: Enable required APIs 
+
+From the console: 
+
+With the new project selected, go to APIs & Services → Library. 
+
+Enable at minimum: 
+
+Gemini for Google Cloud API (cloudaicompanion.googleapis.com) – required for Gemini Code Assist / Gemini in Cloud Tools. 
+
+Vertex AI API – if you will call Gemini models from Vertex AI endpoints.​ 
+
+Cloud Storage API – if you will store data, prompts, or artifacts.​ 
+
+Identity and Access Management (IAM) API – to manage IAM programmatically.​ 
+
+For Gemini Enterprise’s intranet/agentic features, also ensure the Gemini Enterprise (Discovery Engine–backed) service is enabled as indicated in the Gemini Enterprise get-started guide. 
+
+Step 4: Grant IAM roles in the project 
+
+Assign these roles to each user (or group) who should use Gemini from this project: 
+
+Gemini for Google Cloud User: roles/cloudaicompanion.user – lets users invoke Gemini for Google Cloud features.​ 
+
+For Vertex AI Gemini usage: 
+
+Vertex AI User: roles/aiplatform.user.​ 
+
+For admins who manage setup: 
+
+Service Usage Admin: roles/serviceusage.serviceUsageAdmin to enable APIs. 
+
+Optionally Owner or Editor on the project for full control. 
+
+Step 5: Turn on Gemini Enterprise experience 
+
+In the Cloud console, search for Gemini Enterprise or open the Gemini Enterprise page (if available in your region/tenant). 
+
+If you see a Start trial or Enable button, click it to activate Gemini Enterprise for the selected project (or the org, depending on UI). 
+
+Follow the prompts to connect data stores (e.g., Google Drive, Calendar) or deploy a Gemini Enterprise app if you’re using the full intranet/assistant experience. 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+SHAREPOINT ONLINE CONNECTOR SETUP 
+
+Before creating the Microsoft SharePoint connector in Gemini Enterprise, register a Microsoft Entra application to enable secure access. Google recommends that you use Federated credentials authentication method that you select when you are creating the connector in Gemini Enterprise. 
+
+Step 1: CREATE APP REGISTRATION  
+
+Create an App registration in the Microsoft Entra admin center: https://entra.microsoft.com 
+
+Under Supported account types, select the option Accounts in the organizational directory only 
+
+Under Redirect URI, add a Web redirect URI pointing to the Google Cloud auth handler https://vertexaisearch.cloud.google.com/console/oauth/sharepoint_oauth.html 
+
+ 
+
+ 
+
+After creating the App registration, note the Client ID and Tenant ID: 
+
+A screenshot of a computer
+
+AI-generated content may be incorrect. 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+Under Certificates & secrets, add a new client secret. Note the secret string after creation: 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+Use the following settings: 
+
+Federated credential scenario: Other issuer 
+
+Issuer: https://accounts.google.com 
+
+Subject Identifier If you selected Data ingestion with Federated credentials authentication method, then copy the Subject identifier from the Google Console screen when you create Data Store else this field is not required. 
+
+Step 2: Configure Permissions for Crawling SharePoint site 
+
+Go to the API permissions setting for the app registration. Add all the permissions as shown in the following screenshot. Grant admin consent to all the added permissions: 
+
+ 
+
+ 
+
+SharePoint REST API (Grant full control permission selected sites) 
+
+When the connector is pulling data from SharePoint REST API, we utilize the refresh token provided during setup. 
+
+These permissions are defined through Application type permissions and are granted by clicking the Authenticate button. 
+
+ 
+
+Permission  
+
+Type 
+
+Purpose 
+
+AllSites.FullControl 
+
+Application 
+
+Full control over all sites 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+MICROSOFT OUTLOOK CONNECTOR SETUP 
+
+Step 1: CREATE APP REGISTRATION  
+
+Same step as for Sharepoint Connector 
+
+Step 2: Configure Permissions for Outlook  
+
+Go to the API permissions setting for the app registration. In the Request API permissions page, select Microsoft Graph to add all the permissions as below table. Grant admin consent to all the added permissions. 
+
+Connection mode 
+
+Scope 
+
+Purpose 
+
+Federated search 
+
+Mail.Read 
+Calendars.Read 
+Contacts.Read 
+
+(Delegated) Allows the connector to read the signed-in user's mailbox, calendar events, and contacts. 
+
+Actions 
+
+Mail.Send 
+
+(Delegated) Allows the connector to send mail to users in the organization. 
+
+ 
+
+Calendars.ReadWrite 
+
+(Delegated) Allows the connector to create, read, update, and delete events in user calendars. 
+
+ 
+
+Contacts.ReadWrite 
+
+(Delegated) Allows the connector to create, read, update, and delete user contacts. 
+
+MICROSOFT OneDrive CONNECTOR SETUP 
+
+Step 1: CREATE APP REGISTRATION  
+
+Same step as for SharePoint Connector 
+
+Step 2: Configure Permissions for OneDrive  
+
+Go to the API permissions setting for the app registration. In the Request API permissions page, select Microsoft Graph and add below permissions. 
+
+Connection mode 
+
+Scope 
+
+Purpose 
+
+Federated search 
+
+Files.Read.All 
+
+(Delegated) Allows the connector to read all files that the user can access. 
+
+Sites.Read.All 
+
+(Delegated) Allows the connector to read documents and list items in all site collections that the user can access. 
+
+Actions 
+
+Files.ReadWrite.AppFolder 
+
+(Delegated) Allows the connector to read, create, update and delete files in the Microsoft OneDrive folder. 
+
+Files.ReadWrite 
+
+(Delegated) Allows the connector to read, create, update, and delete the files that the user can access. 
+
+ 
+
+FHIR CONNECTOR SETUP 
+
+Adding a FHIR (Fast Healthcare Interoperability Resources) data store to Gemini Enterprise allows the AI to search and reason across clinical data like patient records, observations, and encounters. This is done through Vertex AI Search and Conversation. 
+
+Step 1:  FHIR Store should already exist  
+
+Step 2:  Add the FHIR store to Gemini Enterprise  
+
+In Gemini Enterprise Click Data Stores in the left-hand navigation.  Select Healthcare API (FHIR) as your data source. 
+
+A screenshot of a computer
+
+AI-generated content may be incorrect. 
+
+Step 3: Review and Map the Schema 
+
+Vertex AI provides a Google-defined schema for standard FHIR resources. 
+
+Refine Fields: Expand specific resources to verify which fields are "searchable" or "retrievable." 
+
+Add Custom Fields: In case of FHIR Extensions, add them to the schema so that AI can "see" specific data. 
+
+Step 4: Finalize and Index 
+
+Enter a Data Store Name and click Create 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+BIGQUERY CONNECTOR 
+
+This section describes the steps to configure the Gemini Enterprise connector for BigQuery. 
+
+For purpose of current PoC we will be connecting to below BigQuery – 
+
+GCP Project='xykqqimp-shf1-nswe-j57t-6oq8ro ' 
+
+Dataset = `win_quality_agent` 
+
+Tables = win-statements 
+
+Pre-requisite –  
+
+GCP role BigQuery Data Viewer (roles/bigquery.dataViewer) should be granted to user to setup at dataset and table level  
+
+At project level BigQueryJob user role should be granted to the service account used by Gemini Enterprise connector. 
+
+To import data from a source Google Cloud project that's different from the Google Cloud project with the Gemini Enterprise data store, grant the following Identity and Access Management (IAM) roles to the service-349445209808@gcp-sa-discoveryengine.iam.gserviceaccount.com service account in the project that contains the Gemini Enterprise data store: 
+
+BigQuery Job User (roles/bigquery.jobUser) 
+
+You can import structured data from BigQuery datasets. Your schema is auto detected. 
+
+After importing, Google recommends that you edit the auto-detected schema to map key properties, such as titles.  
+
+If you select to import structured data with metadata, you include two fields in your BigQuery tables: 
+
+An ‘id’ field to identify the document. If you import structured data without metadata, then the ‘id’ is generated for you. Including metadata lets you specify the value of id. 
+
+A jsonData field that contains the data.  
+
+ 
+
+You can create data stores from BigQuery tables in two ways: 
+
+One-time ingestion: You import data from a BigQuery table into a data store. The data in the data store does not change unless you manually refresh the data. 
+
+Periodic ingestion: You import data from one or more BigQuery tables, and you set up a sync frequency that determines how often the data stores are updated with the most recent data from the BigQuery dataset. 
+
+Import Once from BigQuery  : 
+
+To ingest data from a BigQuery table, use the following steps to create a data store and ingest data using the Google Cloud console. 
+
+To use the Google Cloud console to ingest data from BigQuery, follow these steps: 
+
+In the Google Cloud console, go to the Gemini Enterprise page. 
+
+Go to the Data Stores page. 
+
+Click Create Data Store. 
+
+On the Select a data source page, select BigQuery. 
+
+Select what kind of data you are importing. Select ‘Structured Data Import’ and ‘BigQuery Table with your own schema’ option. 
+
+In case specialized data import we can select one of the following options- 
+
+Media – BigQuery table with structured media data 
+
+Unstructured – BigQuery table with metadata 
+
+Healthcare – BigQuery table with structured healthcare data 
+
+Click One time. 
+
+In the BigQuery path field, click Browse, select a table that you have prepared for ingesting, and then click Select. Alternatively, enter the table location directly in the BigQuery path field. 
+
+Click Continue. 
+
+If you are doing one-time import of structured data: 
+
+Map fields to key properties. 
+
+If there are important fields missing from the schema, use Add new field to add them. 
+
+For more information, see About auto-detect and edit. 
+
+Click Continue. 
+
+Choose a region for your data store. 
+
+Enter a name for your data store. 
+
+Click Create. 
+
+To check the status of your ingestion, go to the Data Stores page and click your data store name to see details about it on its Data page. When the status column on the Activity tab changes from  in progress to Import completed, the ingestion is complete. 
+
+Depending on the size of your data, ingestion can take several minutes to several hours. 
+
+ 
+
+Periodic Ingestion from BigQuery  : 
+
+The following procedure describes how to create a BigQuery data store that periodically syncs data from a BigQuery dataset. If your dataset has multiple tables, you can add them to the BigQuery data store you are creating. Each table you add is referred to as an entity. Gemini Enterprise creates a separate data store for each entity. Therefore, when you create the data store using the Google Cloud console, you get a collection of data stores representing these ingested data entities. 
+
+Data from the dataset is synced periodically to the entity data stores. You can specify synchronization daily, every three days, or every five days. 
+
+To create a data store that periodically syncs data from a BigQuery dataset to Gemini Enterprise, follow these steps: 
+
+In the Google Cloud console, go to the Gemini Enterprise page. 
+
+In the navigation menu, click Data Stores. 
+
+Click Create Data Store. 
+
+On the Source page, select BigQuery. 
+
+Select the kind of data that you are importing. 
+
+Click on Periodic. 
+
+Select the Sync frequency, how often you want the Gemini Enterprise connector to sync with the BigQuery dataset. You can change the frequency later. 
+
+In the BigQuery dataset path field, click Browse, select the dataset that contains the tables that you have prepared for ingesting. Alternatively, enter the table location directly in the BigQuery path field. The format for the path is projectname.datasetname. 
+
+In the Tables to sync field, click Browse, and then select a table that contains the data that you want for your data store. 
+
+Note: Make sure that the data in the tables matches the kind of data that you selected in step 5. 
+If there is a mismatch you won't know until one of the following happens: 
+
+You get errors when the connector tries to import data. 
+
+You see unexpected search results. This happens if the selected type was structured but should have been unstructured or structured with metadata. The data is imported, but the content URL or metadata is not recognized and is treated as a string. 
+
+After a data store is created, you cannot update the selected BigQuery tables. To update the table list, you must delete the existing data store and create a new one. 
+
+If there are additional tables in the dataset that you want to use for data stores, click Add table and specify those tables too. 
+
+Click Continue. 
+
+Choose a region for your data store, enter a name for your data connector, and click Create. 
+
+You have now created a data connector, which will periodically sync data with the BigQuery dataset. And, you have created one or more entity data stores. The data stores have the same names as the BigQuery tables. 
+
+To check the status of your ingestion, go to the Data Stores page and click your data connector name to see details about it on its Data page > Data ingestion activity tab. When the status column on the Activity tab changes from in progress to succeeded, the first ingestion is complete. 
+
+Depending on the size of your data, ingestion can take several minutes to several hours. 
+
+After you set up your data source and import data the first time, the data store syncs data from that source at a frequency that you select during setup. About an hour after the data connector is created, the first sync occurs. The next sync then occurs around 24 hours, 72 hours, or 120 hours later. 
+
+Create Enterprise Search App and attach Data Store – 
+
+In the Google Cloud console, go to the Gemini Enterprise page. 
+
+On the Apps page, click Create app. 
+
+In the App name field, enter a name for your app. 
+
+To update the automatically generated app ID, click Edit. The app ID cannot be updated after you create the app. 
+
+In the Choose a location section, select a multi-region. Use the default global (Global) multi-region unless you need to restrict your data to a specific geography. 
+
+To provide your company's external name, expand Advanced options. In the Company name field, enter your company's external name (for e.g. Optum) omitting suffixes such as Inc or LLC. This helps the LLM identify the company the app represents. 
+
+Click Create. 
+
+Once App is created, we can connect it to existing data store by following the steps below 
+
+In the Google Cloud console, go to the Gemini Enterprise page. 
+
+From the navigation menu, click Apps. 
+
+Select the Gemini Enterprise app where you want to connect your data store. 
+
+From the navigation menu of the app, click Connected data sources. 
+
+Click Add existing data stores and select your data store. 
+
+Click Connect. 
+
+ 
+
+User Authorization – 
+
+To successfully connect and use data stores with your Gemini Enterprise app, ensure that you have authorized Gemini Enterprise to access data from your data store. 
+
+In the Google Cloud console, go to the Gemini Enterprise page. 
+
+From the navigation menu, click Apps. 
+
+Select the Gemini Enterprise app where you have connected your data store. 
+
+ 
+
+Click the web app URL or copy it to open it in a new tab. 
+
+Select ‘Manage Your Data’ 
+
+Screen displaying manage data. 
+
+Authorize your Data Store – 
+
+For data stores with actions configured, click Enable actions and then sign in to authorize your data store. 
+
+For search-only data stores, click Authorize and then sign in to authorize your data store. 
+
+Screen displaying options to authorize data store connections. 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+GraphQL API & FHIR CONNECTOR USING API 
+
+The PES GraphQL Connector converts the PES API into a natural language interface powered by Vertex AI Agent Engine. 
+
+Stakeholders can type queries like “Show ExaminerS practitioners” and receive live practitioner details (NPI, Name, Specialties, Credentials, Status) within seconds. 
+
+The solution leverages: 
+
+Agent Development Kit (ADK) 
+
+Vertex AI 
+
+OAuth2 Client Credentials flow for secure API access 
+
+ 
+
+Step 1: Authentication Layer 
+
+Purpose: Enable secure access to the UHG PES API using OAuth2 client credentials. 
+
+Key Functions: 
+
+Generate access token via OAuth2 flow 
+
+Secure client ID and client secret handling via Secret Manager 
+
+Add the bearer token to subsequent API requests 
+
+Rectangle 11, TextboxRectangle 10, TextboxRectangle 9, Textbox 
+
+ 
+
+ 
+
+ 
+
+ 
+
+A computer screen with many green text 
+
+ 
+
+Step 2: GraphQL Query Layer 
+
+Purpose: Execute authenticated GraphQL queries against PES practitioner endpoint.    
+
+API Endpoint: https://api-stg.uhg.com/api/provider/demographics/practitioner/1.0.0 
+
+  Method: POST (application/json) 
+
+  Query Returns: NPI, Name, Specialties, Credentials, Status 
+
+  Sample Response: (Raw JSON): 
+
+{ 
+
+  "response": [ 
+
+    { 
+
+      "npi": "123...", 
+
+      "name": "Dr. Smith", 
+
+      "specialties": ["Cardiology"] 
+
+    } 
+
+  ] 
+
+} 
+
+ 
+
+Step 3: ADK Agent Logic 
+
+Purpose: Convert natural language queries into GraphQL tool calls and return a human-readable response. 
+
+Agent Configuration:  
+
+  Agent: pes_agent  
+
+  Model: "gemini-2.0-flash-exp", 
+
+   Processing Flow: 
+
+Parse user intent 
+
+Invoke pes_search tool 
+
+Execute GraphQL query 
+
+Retrieve response 
+
+Format structured, human-friendly output 
+
+Step 4: GCS Query Storage 
+
+Purpose: Store GraphQL queries externally to enable zero-code updates. 
+
+Permissions: roles/storage.objectViewer on bucket 
+
+Upload the query inside GCS bucket. 
+
+A screenshot of a computer 
+
+Benefits: 
+
+Dynamic query management 
+
+Version control capability 
+
+No redeployment required for query changes 
+
+ 
+
+Step 5: Test the agent locally 
+
+This step validates your connector, OAuth configuration, GraphQL query, and agent logic locally before deploying to Vertex AI Agent Engine. 
+
+5.1 Set your GCP project and authenticate locally 
+
+gcloud auth application-default login 
+
+gcloud config set project <PROJECT_ID> 
+
+ 
+
+5.2 Run your local test script( python test_local.py) 
+
+This ensures your connector works endtoend. 
+
+A screen shot of a computer 
+
+Step 5: Agent Engine Deployment(Vertex AI) 
+
+Purpose: Deploy the solution to a fully managed production environment using Vertex AI infrastructure. 
+
+This step packages: 
+
+Agent logic 
+
+OAuth logic 
+
+Query loaders 
+
+Summarization logic 
+
+Environment variables 
+
+Permissions and service account identity 
+
+To deploy:  
+
+adk deploy agent_engine PESAgent \ 
+
+  --project=ebbwszjc-w9hi-90f5-lt2n-u91th3 \ 
+
+  --region=us-central1 \ 
+
+  --agent_engine_config_file=PESAgent/.agent_engine_config.json \ 
+
+  --requirements_file=PESAgent/requirements.txt 
+
+ 
+
+Once deployed, the engine is available as a secure endpoint. 
+
+A computer screen with text
+
+AI-generated content may be incorrect. 
+
+Step 6: Testing the agent from Agent engine – Playground 
+
+After deployment, validate the agent inside the Reasoning Engine Playground. 
+
+Open Vertex AI – Agent Engine - PESAgentA screenshot of a computer 
+
+Open Playground and test.A screenshot of a computer
+
+AI-generated content may be incorrect. 
+
+A screenshot of a computer
+
+AI-generated content may be incorrect. 
+
+A screenshot of a computer
+
+AI-generated content may be incorrect. 
+
+Step 6: Gemini Enterprise Integration – Custom Agent via Agent Engine 
+
+Purpose: The Agent Engine endpoint URL is configured within the Gemini Enterprise application as a Custom Agent via Agent Engine. 
+
+How It Works 
+
+The engine’s endpoint URL is registered inside Gemini Enterprise 
+
+Gemini routes practitioner-related queries to this custom agent 
+
+The agent executes the PES GraphQL workflow and returns results 
+
+Gemini reformats the final answer for the end user 
+
+This creates a seamless conversational experience inside the Gemini Enterprise workspace. 
+
+Create a Gemini Enterprise App(GraphQLApp) 
+A screenshot of a computer
+
+AI-generated content may be incorrect. 
+
+Now add the agent deployed in agent engine from custom agent via agent engine. 
+
+ 
+
+A screenshot of a computer
+
+AI-generated content may be incorrect. 
+
+PESAgent is now created successfully.A screenshot of a computer
+
+AI-generated content may be incorrect.  
+
+Ensure the workforce identity is set up.A screenshot of a computer
+
+AI-generated content may be incorrect. 
+
+Access the App from Gemini Enterprise url: 
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+    🟦 Stakeholder               
+
+----------------------                  
+
+  • UI: Asks query                             
+
+              
+
+                            1️⃣ Natural Language Query 
+
+Text Box 3, Textbox            
+
+        🟩 Vertex AI Agent Engine                                          
+
+------------------------------------------                                 
+
+ • Gemini 2.0 Flash Model                                                 
+
+ • pes_search Tool (ADK)                                                    
+
+ • OAuth2 Token Cache (1 hour)                                      
+
+ • Intent Parsing + Tool Orchestration                           
+
+             
+
+                           2️⃣ Authenticated API Call 
+
+Text Box 4, Textbox            
+
+             🟧 UHG PES API                                                        
+
+------------------------------------------                                  
+
+ • OAuth2 Token Endpoint                                                  
+
+ • GraphQL Practitioner Endpoint                                  
+
+ • Returns Practitioner JSON Data                                
+
+                 
+
+                            3️⃣ Raw JSON Response 
+
+            
+
+                                                 
+
+Text Box 6, Textbox------------------------------------------                                  
+
+ • Formats Response                                                            
+
+ • Converts JSON → Human Readable Output          
+
+             
+
+                            4️⃣ Final Response 
+
+Text Box 7, Textbox            
+
+ 
+
+      🟦 Stakeholder                
+
+----------------------                  
+
+ "47 Doctors Found…"         
+
+   
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+Architecture Diagram 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+Best Practices 
+
+Foundational Practices 
+
+1. Centralize connectors in one controlled project 
+
+2. Apply least-privilege IAM 
+
+3. Use enterprise-managed service accounts 
+
+4. Rotate credentials regularly 
+
+5. Identify PII and apply redaction / masking 
+
+6. Enable logging  
+
+7. Monitor Connector usage  
+
+  
+
+Microsoft Outlook: 
+
+1. Avoid full mailbox access 
+
+2. Use Mail.Read instead of Mail.ReadWrite 
+
+3. Monitor Large Attachment extraction  
+
+4. Avoid syncing entire historical mailbox 
+
+5. Define time-window filtering 
+
+6. Limit attachment ingestion size 
+
+  
+
+SharePoint Connector  
+
+ 1. Grant access only to specific Sites or Libraries 
+
+2, Use SharePoint group-based access 
+
+3. Capture: 
+
+Document version 
+
+Owner 
+
+Created/Modified timestamp 
+
+4. Use metadata for context grounding 
+
+  
+
+OneDrive Connector  
+
+1.Avoid entire organizational drive access 
+
+2.Connect only approved shared folders	 
+
+3.Set file size limits 
+
+4.Exclude binary-heavy content unless required 
+
+  
+
+BigQuery Connector 
+
+1. Grant only: roles/bigquery.dataViewer roles to the users to control updating the records  
+
+2. Avoid Write permissions 
+
+3. Avoid bigquery.admin 
+
+4. Use final datasets instead of raw tables 
+
+5. Use views instead of tables 
+
+6. Use partitioned and clustered tables  
+
+7. Define column descriptions in Bigquery at table level before setting up the connector to ensure the AI understands business semantics instead of raw data types 
+
+8.Use “Additional LLM instructions” to hardcode agent persona, formatting and output rules for a consistent user experience. 
+
+9.Implement row level security by configuring the acl_info column and enabling ACLs during datastore setup to enforce data privacy 
+
+ 
+
+  
+
+GraphQL Connector: 
+
+1.Store all credentials in Secret Manager 
+
+2.Rotate secrets and OAuth tokens regularly 
+
+3.Assign least privilege IAM roles to all service accounts 
+
+4.Never log sensitive user data or PII 
+
+5.Log only high-level metadata (e.g., request type, count, status) 
+
+6.Use HTTPS endpoints consistently 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+PESAgent Deployment Guide:  
+
+Purpose 
+
+This document explains how a developer can: 
+
+Download the PES Agent code from Git 
+
+Open and edit the code in Visual Studio Code (VS Code) 
+
+Add or modify files if required 
+
+Commit and push changes 
+
+Trigger automatic deployment via GitHub 
+
+Note: Deployment is fully automated. 
+Any push to the pes-agent branch triggers deployment automatically. 
+
+Prerequisites 
+
+Before starting, ensure the following are installed on your system: 
+
+Git  
+
+Visual Studio Code (VS Code)  
+
+GitHub Access  
+
+You must have access to the PES Agent repository 
+
+ 
+
+Step 1: Download (Clone) the Code from GitHub 
+
+Open VS Code 
+
+Open the Terminal inside VS Code  
+
+Menu → Terminal → New Terminal 
+
+Navigate to a folder where you want the code:  
+
+Python 
+
+cd <your-local-folder> 
+
+Clone the repository:  
+
+Terminal 
+
+git clone https://github.com/optum-eeps/epgeminienterprise-graphql.git 
+
+Navigate into the project folder:  
+
+Terminal 
+
+cd <repo-name> 
+
+You now have the code locally. 
+
+Step 2: Open the Project in VS Code 
+
+In VS Code:  
+
+Click File → Open Folder 
+
+Select the cloned repository folder 
+
+ 
+
+You should see files such as:  
+
+agent.py 
+
+pes_tool.py 
+
+Requirements.txt 
+
+agent_engine_config.json 
+
+.github/workflows/deploy-agent-engine.yaml 
+
+ 
+
+Step 3: Create or Switch to the pes-agent Branch 
+
+All deployments happen from the pes-agent branch. 
+
+Check current branch:  
+
+Terminal 
+
+git branch 
+
+If not already on pes-agent, switch:  
+
+Terminal 
+
+git checkout pes-agent 
+
+If the branch does not exist locally:  
+
+Terminal 
+
+git checkout -b pes-agent origin/pes-agent 
+
+You are now on the correct deployment branch. 
+
+Step 4: Make Code Changes 
+
+You can now: 
+
+Edit existing files 
+
+Add new files 
+
+Update logic as required 
+
+Common files you may edit: 
+
+agent.py – Agent behaviour and instructions 
+
+pes_tool.py – API / GraphQL logic 
+
+agent_engine_config.json – Environment configuration 
+
+requirements.txt – Python dependencies 
+
+Add a new file (if required) 
+
+Right‑click in VS Code Explorer 
+
+Click New File 
+
+Name the file and add code 
+
+Save the file 
+
+All changes are local until committed. 
+
+Step 5: Check What Changed 
+
+Before committing, review changes: 
+
+Terminal 
+
+git status 
+
+This shows: 
+
+Modified files 
+
+New files 
+
+Deleted files (if any) 
+
+(Optional) View detailed differences: 
+
+Terminal 
+
+git diff 
+
+Step 6: Add Changes to Git 
+
+Stage all changes: 
+
+Terminal 
+
+git add . 
+
+This prepares files for commit. 
+
+Step 7: Commit the Changes 
+
+Create a commit with a clear message: 
+
+Terminal 
+
+git commit -m "Updated PES agent logic" 
+
+The changes are now saved locally in Git. 
+
+Step 8: Push Changes to GitHub 
+
+Push to the pes-agent branch: 
+
+Terminal 
+
+git push origin pes-agent 
+
+This automatically triggers deployment. 
+
+Step 9: Deployment (Automatic) 
+
+Once the push completes: 
+
+GitHub Actions starts automatically 
+
+The workflow:  
+
+Builds the agent 
+
+Validates configuration 
+
+Deploys to Agent Engine 
+
+No manual deployment steps are required 
+
+ 
+
+Step 10: Check Deployment Status (Optional) 
+
+Open the GitHub repository in browser 
+
+Go to Actions tab 
+
+Click the latest workflow run 
+
+Verify status:  
+
+✅ Green = Successful deployment 
+
+❌ Red = Deployment failed (check logs) 
+
+ 
+
+ 
+
+ 
+
+ 
