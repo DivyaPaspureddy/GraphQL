@@ -1,0 +1,14 @@
+# Core Vertex AI / Agent Engine SDKs (pinned to wheel-available versions)
+google-cloud-aiplatform[adk,agent_engines]==1.139.0
+google-adk==1.26.0
+
+# Serialization & validation
+pydantic==2.12.5
+cloudpickle==3.0.0
+
+# Google Cloud clients (only what's needed at runtime)
+google-cloud-storage==2.18.0
+google-cloud-secret-manager==2.22.0
+
+# HTTP
+requests==2.32.4
