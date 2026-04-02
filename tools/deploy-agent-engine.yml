@@ -1,0 +1,229 @@
+name: Deploy to Agent Engine
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - pes-agent
+    paths:
+      - "**"
+
+permissions:
+  actions: read
+  contents: read
+  pull-requests: read
+  security-events: write
+  checks: write
+  id-token: write
+
+env:
+  # -------- Project / runtime --------
+  PROJECT_ID:      ${{ vars.PROJECT_ID }}
+  PYTHON_VERSION:  ${{ vars.PYTHON_VERSION }}   # recommend pinning to 3.11.15
+  DISPLAY_NAME:    ${{ vars.DISPLAY_NAME }}
+  REGION:          ${{ vars.REGION }}
+  AGENT_PATH:      .
+  SERVICE_ACCOUNT: ${{ vars.SERVICE_ACCOUNT }}  # optional (used in JSON, not CLI)
+
+  # -------- Force pip to PyPI, non-interactive, for ALL steps (incl. setup-python) --------
+  PIP_NO_INPUT: '1'
+  PIP_DISABLE_PIP_VERSION_CHECK: '1'
+  PIP_INDEX_URL: https://pypi.org/simple
+  PIP_CONFIG_FILE: ''           # neutralize any global pip.conf that points to Artifactory
+  PIP_EXTRA_INDEX_URL: ''       # neutralize extra indexes
+  PIP_FIND_LINKS: ''            # neutralize find-links
+  PIP_DEFAULT_TIMEOUT: '30'
+
+jobs:
+  deploy:
+    name: Deploy PESAgent to Agent Engine
+    runs-on: runnerstage
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate required variables and files
+        shell: bash
+        run: |
+          set -euo pipefail
+          for v in PROJECT_ID PYTHON_VERSION DISPLAY_NAME REGION; do
+            if [ -z "${!v:-}" ]; then
+              echo "Missing required variable: $v"
+              exit 1
+            fi
+          done
+          if [ ! -f "${AGENT_PATH}/agent.py" ]; then
+            echo "agent.py not found at ${AGENT_PATH}/"
+            exit 1
+          fi
+          echo "Variables OK; agent.py present."
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+
+      # ---------- Setup Python (honors pip env above) ----------
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+
+      # ---------- Install dependencies (single resolver pass) ----------
+      - name: Install ADK and project requirements
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -f "requirements.txt" ]; then
+            pip install --no-input --index-url "$PIP_INDEX_URL" google-adk -r requirements.txt
+          else
+            pip install --no-input --index-url "$PIP_INDEX_URL" google-adk
+          fi
+          adk --version
+
+      # ---------- Load env from config/agent_engine_config.json (so import succeeds) ----------
+      - name: Load env from config/agent_engine_config.json
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ ! -f "config/agent_engine_config.json" ]; then
+            echo "❌ config/agent_engine_config.json not found"; exit 1
+          fi
+          python - <<'PY'
+          import os, json
+          path = "config/agent_engine_config.json"
+          with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+          env = (data.get("env_vars") or {})
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as gh:
+            for k, v in env.items():
+              if v is None: 
+                continue
+              s = str(v).strip()
+              if s:
+                gh.write(f"{k}={s}\n")
+          print(f"Exported {len(env)} env entries from {path}")
+          PY
+
+      # ---------- Stage a filtered .agent_engine_config.json at repo root for deploy ----------
+      - name: Stage .agent_engine_config.json at repo root (filtered)
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, os
+          src = "config/agent_engine_config.json"
+          with open(src, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+          out = {}
+          # Keep service_account (if provided either in the config file or via env var)
+          if data.get("service_account"):
+            out["service_account"] = data["service_account"]
+          elif os.getenv("SERVICE_ACCOUNT"):
+            out["service_account"] = os.environ["SERVICE_ACCOUNT"]
+
+          env_in = data.get("env_vars") or {}
+          env_out = {}
+          for k, v in env_in.items():
+            if v is None: 
+              continue
+            s = str(v).strip()
+            if s:
+              env_out[k] = s
+          out["env_vars"] = env_out
+
+          with open(".agent_engine_config.json", "w", encoding="utf-8") as g:
+            json.dump(out, g, indent=2)
+
+          print(f"Wrote .agent_engine_config.json with {len(env_out)} env entries.")
+          PY
+
+          echo "----- .agent_engine_config.json -----"
+          cat .agent_engine_config.json
+          echo "------------------------------------"
+
+      # ---------- Show working context ----------
+      - name: Show working directory and files
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "PWD: $(pwd)"
+          echo "Tree (depth 2):"
+          find . -maxdepth 2 -type f | sort
+          echo "Agent path: ${AGENT_PATH}"
+          [ -f ".agent_engine_config.json" ] || { echo "❌ .agent_engine_config.json not found at repo root"; exit 1; }
+
+      - name: Import check (agent:root_agent)
+        working-directory: ${{ env.AGENT_PATH }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -c "import importlib,sys;m=importlib.import_module('agent');assert hasattr(m,'root_agent'),'root_agent not found';print('Import OK: agent:root_agent')"
+
+      # ---------- DEPLOY (verbose, fail-fast, prove RE creation) ----------
+      - name: Deploy to Agent Engine
+        id: deploy
+        working-directory: ${{ env.AGENT_PATH }}
+        shell: bash
+        run: |
+          set -euxo pipefail
+          echo "Project: ${PROJECT_ID}"
+          echo "Region:  ${REGION}"
+          echo "Display: ${DISPLAY_NAME}"
+
+          # Run deploy verbosely and tee output for parsing
+          adk deploy agent_engine \
+            --project "${PROJECT_ID}" \
+            --region  "${REGION}" \
+            --display_name "${DISPLAY_NAME}" \
+            . | tee deploy_output.txt
+
+          echo "Parsing ReasoningEngine ID from deploy output..."
+          RE_LINE=$(grep -Eo 'projects/[0-9]+/locations/[a-z0-9-]+/reasoningEngines/[0-9]+' deploy_output.txt | tail -n1 || true)
+          if [ -z "${RE_LINE}" ]; then
+            echo "❌ Did not find a ReasoningEngine resource ID in deploy output."
+            echo "----- Deploy Output (tail) -----"
+            tail -n +1 deploy_output.txt || true
+            exit 2
+          fi
+          echo "✅ ReasoningEngine resource: ${RE_LINE}"
+          echo "re_resource=${RE_LINE}" >> "$GITHUB_OUTPUT"
+
+      # ---------- Fetch logs if deploy step failed (for diagnosis) ----------
+      - name: Fetch Agent Engine startup logs (on failure)
+        if: failure() && steps.deploy.outcome == 'failure'
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -f deploy_output.txt ]; then
+            RE_LINE=$(grep -Eo 'projects/[0-9]+/locations/[a-z0-9-]+/reasoningEngines/[0-9]+' deploy_output.txt | tail -n1 || true)
+          fi
+          if [ -z "${RE_LINE:-}" ]; then
+            echo "⚠️ No ReasoningEngine ID found; cannot fetch logs."
+            exit 0
+          fi
+          RE_ID=$(basename "${RE_LINE}")
+          echo "📄 Fetching logs for reasoning_engine_id=${RE_ID}"
+          gcloud logging read \
+            'resource.type="aiplatform.googleapis.com/ReasoningEngine"
+             resource.labels.reasoning_engine_id="'$RE_ID'"' \
+            --freshness="2h" --limit=200 --format='value(textPayload, jsonPayload, protoPayload.status.message)'
+
+      - name: Done
+        if: success()
+        shell: bash
+        run: |
+          echo "✅ Deployment command completed."
+          echo "Agent:   ${DISPLAY_NAME}"
+          echo "Region:  ${REGION}"
+          echo "Project: ${PROJECT_ID}"
